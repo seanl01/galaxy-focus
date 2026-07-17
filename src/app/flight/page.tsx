@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import ChaseView from "@/components/ChaseView";
+import Cockpit from "@/components/Cockpit";
+import CockpitHUD from "@/components/CockpitHUD";
 import Hyperspace from "@/components/Hyperspace";
 import PlanetDisc from "@/components/PlanetDisc";
 import { useStore, ActiveJourney } from "@/lib/store";
@@ -154,6 +156,7 @@ export default function FlightPage() {
 
   const inFlight = phase === "cruise" || phase === "approach";
   const exteriorActive = inFlight && view === "exterior";
+  const progressFrac = total > 0 ? Math.min(1, elapsed / total) : 0;
 
   const cancelJump = () => {
     store.abortJourney();
@@ -170,12 +173,16 @@ export default function FlightPage() {
     <main className="relative h-screen select-none overflow-hidden bg-space-950">
       {/* 2D radial tunnel carries countdown/cockpit; it hands off to the
           3D chase scene in exterior view so there's a single vanishing point. */}
-      <Hyperspace
-        warp={warp}
-        className={`transition-opacity duration-1000 ${
-          exteriorActive ? "opacity-0" : "opacity-100"
-        }`}
-      />
+      {/* Shifted up so the tunnel's vanishing point sits behind the canopy
+          centre of the cockpit frame (45% viewport height). */}
+      <div className="absolute inset-x-0 -top-[10%] h-[110%]">
+        <Hyperspace
+          warp={warp}
+          className={`transition-opacity duration-1000 ${
+            exteriorActive ? "opacity-0" : "opacity-100"
+          }`}
+        />
+      </div>
 
       {/* Faint nebula wash behind the 3D scene (exterior only) */}
       <AnimatePresence>
@@ -251,14 +258,14 @@ export default function FlightPage() {
 
       {/* ------------------------------------------------ in flight */}
       {(phase === "cruise" || phase === "approach") && journey && (
-        <div className="absolute inset-0 z-10 flex flex-col">
-          {/* top bar */}
-          <div className="flex items-start justify-between p-6 md:p-8">
+        <div className="absolute inset-0 z-10">
+          {/* route summary card — exterior only; the cockpit has the minimap */}
+          {exteriorActive && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.5 }}
-              className="glass px-5 py-3"
+              className="glass absolute left-5 top-5 px-5 py-3"
             >
               <p className="text-sm text-slate-200">
                 {origin.name} → {destination.name}
@@ -268,100 +275,60 @@ export default function FlightPage() {
                 {formatMinutes(journey.totalSeconds / 60)} flight
               </p>
             </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.6 }}
-              className="flex gap-2"
-            >
-              <button
-                onClick={toggleMusic}
-                className={`glass px-4 py-3 text-xs uppercase tracking-[0.18em] transition-colors ${
-                  musicOn ? "text-glow-gold" : "text-slate-400 hover:text-slate-100"
-                }`}
-                aria-pressed={musicOn}
-              >
-                ♪ Ambience
-              </button>
-              <button
-                onClick={() =>
-                  setView((v) => (v === "cockpit" ? "exterior" : "cockpit"))
-                }
-                className="glass px-4 py-3 text-xs uppercase tracking-[0.18em] text-slate-400 transition-colors hover:text-slate-100"
-              >
-                {view === "cockpit" ? "Ship View" : "Cockpit"}
-              </button>
-            </motion.div>
-          </div>
+          )}
 
-          {/* cockpit: the timer is the hero */}
-          {!exteriorActive && (
-            <>
-              <div className="flex flex-1 flex-col items-center justify-center gap-3">
-                {phase === "approach" && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1.5 }}
-                    className="label-caps"
-                  >
-                    Approaching {destination.name}
-                  </motion.p>
-                )}
-                <motion.p
-                  initial={{ opacity: 0, scale: 0.94 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 1.4, delay: 0.4 }}
-                  className="text-[16vw] font-extralight leading-none tabular-nums tracking-tight text-slate-100 md:text-[9rem]"
-                  style={{ textShadow: "0 0 60px rgba(143, 179, 255, 0.35)" }}
-                >
-                  {formatClock(remaining)}
-                </motion.p>
-                <p className="label-caps">
-                  {journey.paused ? "Paused" : "Focus Session"}
-                </p>
-              </div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.8 }}
-                className="flex items-center justify-center gap-4 pb-10"
-              >
+          {/* top right: view switcher + audio */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.6 }}
+            className="pointer-events-auto absolute right-5 top-5 flex items-center gap-2.5"
+          >
+            <div className="glass flex rounded-full p-1">
+              {(["cockpit", "exterior"] as const).map((v) => (
                 <button
-                  onClick={() => {
-                    if (store.settings.sound) playClick();
-                    journey.paused ? store.resumeJourney() : store.pauseJourney();
-                  }}
-                  className="btn-ghost min-w-36"
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`rounded-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${
+                    view === v
+                      ? "bg-white/10 text-slate-100"
+                      : "text-slate-500 hover:text-slate-300"
+                  }`}
                 >
-                  {journey.paused ? "Resume" : "Pause"}
+                  {v === "cockpit" ? "Cockpit View" : "Exterior View"}
                 </button>
-                {confirmEnd ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={endFlight}
-                      className="rounded-xl border border-red-400/40 px-6 py-3 text-sm uppercase tracking-[0.2em] text-red-300 transition-colors hover:bg-red-400/10"
-                    >
-                      Confirm End
-                    </button>
-                    <button
-                      onClick={() => setConfirmEnd(false)}
-                      className="btn-ghost px-5 py-3 text-xs"
-                    >
-                      Keep Flying
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setConfirmEnd(true)}
-                    className="btn-ghost min-w-36 border-white/10 text-slate-500 hover:text-slate-300"
-                  >
-                    End Flight
-                  </button>
-                )}
-              </motion.div>
-            </>
+              ))}
+            </div>
+            <button
+              onClick={toggleMusic}
+              className={`glass flex h-10 w-10 items-center justify-center text-base transition-colors ${
+                musicOn ? "text-glow-gold" : "text-slate-400 hover:text-slate-100"
+              }`}
+              aria-pressed={musicOn}
+              aria-label="Toggle ambience"
+            >
+              ♪
+            </button>
+          </motion.div>
+
+          {/* cockpit HUD: timer, minimap, readouts, destination card */}
+          {!exteriorActive && (
+            <CockpitHUD
+              journey={journey}
+              origin={origin}
+              destination={destination}
+              remaining={remaining}
+              progress={progressFrac}
+              now={now}
+              phase={phase === "approach" ? "approach" : "cruise"}
+              confirmEnd={confirmEnd}
+              setConfirmEnd={setConfirmEnd}
+              onTogglePause={() => {
+                if (store.settings.sound) playClick();
+                journey.paused ? store.resumeJourney() : store.pauseJourney();
+              }}
+              onEnd={endFlight}
+            />
           )}
 
           {/* exterior: the journey is the hero, the timer becomes a floating HUD */}
@@ -438,6 +405,22 @@ export default function FlightPage() {
           )}
         </div>
       )}
+
+      {/* cockpit interior frame (decorative; HUD lives above it) */}
+      <AnimatePresence>
+        {inFlight && view === "cockpit" && (
+          <motion.div
+            key="cockpit"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="pointer-events-none absolute inset-0 z-[7]"
+          >
+            <Cockpit />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* full-screen 3D chase scene: ship + streaks share one vanishing point */}
       <AnimatePresence>

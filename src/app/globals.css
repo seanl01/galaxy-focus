@@ -111,12 +111,95 @@ body {
   animation: bank 9s ease-in-out infinite;
 }
 
+/* --- cockpit instruments ----------------------------------------------- */
+
+@keyframes ck-eq {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.ck-eq {
+  transform-origin: bottom;
+  animation: ck-eq 3s ease-in-out infinite;
+}
+
+@keyframes ck-sweep {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.ck-sweep {
+  animation: ck-sweep 7s linear infinite;
+}
+
+@keyframes ck-blink {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.ck-blink {
+  animation: ck-blink 3s ease-in-out infinite;
+}
+
+/* Engine rumble: sub-pixel shudder on the cockpit shell. */
+@keyframes ck-vibe {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(0.5px, -0.4px);
+  }
+  40% {
+    transform: translate(-0.4px, 0.3px);
+  }
+  60% {
+    transform: translate(0.3px, 0.5px);
+  }
+  80% {
+    transform: translate(-0.5px, -0.3px);
+  }
+}
+.ck-vibe {
+  animation: ck-vibe 0.4s linear infinite;
+}
+
+/* Slow drift + slight banking of the whole cockpit. */
+@keyframes ck-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  33% {
+    transform: translate3d(4px, -5px, 0) rotate(0.3deg);
+  }
+  66% {
+    transform: translate3d(-4px, 4px, 0) rotate(-0.25deg);
+  }
+}
+.ck-drift {
+  animation: ck-drift 12s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-lane-flow,
   .animate-ping-slow,
   .animate-pulse-soft,
   .animate-float-slow,
-  .animate-bank {
+  .animate-bank,
+  .ck-eq,
+  .ck-sweep,
+  .ck-blink,
+  .ck-vibe,
+  .ck-drift {
     animation: none;
   }
 }
@@ -126,7 +209,12 @@ body {
 .reduce-motion .animate-ping-slow,
 .reduce-motion .animate-pulse-soft,
 .reduce-motion .animate-float-slow,
-.reduce-motion .animate-bank {
+.reduce-motion .animate-bank,
+.reduce-motion .ck-eq,
+.reduce-motion .ck-sweep,
+.reduce-motion .ck-blink,
+.reduce-motion .ck-vibe,
+.reduce-motion .ck-drift {
   animation: none;
 }
 .reduce-motion * {

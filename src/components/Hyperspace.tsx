@@ -49,7 +49,7 @@ export default function Hyperspace({ warp, className = "" }: HyperspaceProps) {
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.round(Math.min(520, (width * height) / 3000));
+      const count = Math.round(Math.min(430, (width * height) / 3600));
       streaks = Array.from({ length: count }, () => spawn(Math.random()));
     };
 
@@ -73,8 +73,9 @@ export default function Hyperspace({ warp, className = "" }: HyperspaceProps) {
       const cy = height / 2;
       const maxR = Math.hypot(cx, cy);
 
-      // Trail fade — deeper warp leaves longer trails.
-      ctx.fillStyle = `rgba(4, 6, 15, ${0.5 - w * 0.25})`;
+      // Trail fade — deeper warp leaves longer trails, but keep enough
+      // fade that the tunnel stays deep blue instead of washing to white.
+      ctx.fillStyle = `rgba(4, 6, 15, ${0.5 - w * 0.12})`;
       ctx.fillRect(0, 0, width, height);
 
       const speedBase = reduceMotion ? 0.02 : 0.02 + w * w * 1.35;
@@ -106,7 +107,7 @@ export default function Hyperspace({ warp, className = "" }: HyperspaceProps) {
           ctx.fill();
         } else {
           // Stretch streaks with warp.
-          const stretch = 1 + w * 26 * s.dist;
+          const stretch = 1 + w * 9 * s.dist;
           const dx = x1 - x0;
           const dy = y1 - y0;
           ctx.beginPath();
