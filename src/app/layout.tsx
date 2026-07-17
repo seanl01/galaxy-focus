@@ -1,6 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { StoreProvider } from "@/lib/store";
 import "./globals.css";
+
+// Aurebesh display face (Droidobesh Depot, Public Domain). Only used for the
+// scramble glyphs in GlyphReveal, exposed as a CSS variable.
+const aurebesh = localFont({
+  src: "../fonts/droidobesh-depot.otf",
+  variable: "--font-aurebesh",
+  display: "swap",
+  weight: "400",
+});
 
 export const metadata: Metadata = {
   title: "Focus Flight",
@@ -16,7 +26,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${aurebesh.variable}`}>
       <body className="min-h-screen bg-space-950">
         <StoreProvider>{children}</StoreProvider>
       </body>

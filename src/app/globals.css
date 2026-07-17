@@ -24,9 +24,12 @@ body {
   background: rgba(229, 193, 92, 0.35);
 }
 
-/* Aurebesh-style scramble/decode reveal (GlyphReveal). Glyphs glow blue
-   while scrambling, then settle to the heading's own color as they lock. */
+/* Aurebesh scramble/decode reveal (GlyphReveal). While scrambling, glyphs
+   render as Aurebesh (Droidobesh Depot) and glow blue; once a character locks
+   it reverts to the heading's own font and color — an ancient computer
+   translating an alien script. */
 .glyph-char {
+  font-family: var(--font-aurebesh), var(--font-display), sans-serif;
   color: #96b6ff;
   text-shadow: 0 0 12px rgba(143, 179, 255, 0.55);
   transition:
@@ -34,11 +37,13 @@ body {
     text-shadow 80ms ease-out;
 }
 .glyph-char.is-locked {
+  font-family: inherit;
   color: inherit;
   text-shadow: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .glyph-char {
+    font-family: inherit;
     color: inherit;
     text-shadow: none;
     transition: none;

@@ -32,7 +32,8 @@ A fan-made concept for educational purposes. Not affiliated with Lucasfilm.
   in `localStorage`; close the tab mid-flight and the clock keeps running.
 - **Procedural visuals** — planets are layered SVG gradients, starfields and
   the hyperspace tunnel are Canvas 2D, and ambience/jump/chime are WebAudio.
-  The only bundled assets are the CC-BY ship models below.
+  The only bundled assets are the CC-BY ship models and the Aurebesh
+  display font credited below.
 
 ## Running
 
@@ -69,6 +70,12 @@ under `public/models/`:
 - [Speeder Bike](https://poly.pizza/m/1hTD6Jy384m) by Joe Scalise (CC-BY)
 
 Credits are also shown in-app under Settings → Model Credits.
+
+## Font credit
+
+The title scramble/decode effect (`GlyphReveal`) renders glyphs in
+[Droidobesh Depot](https://www.fontspace.com/droidobesh-depot-font-f55049),
+an Aurebesh display font released into the Public Domain.
 
 ## Structure
 

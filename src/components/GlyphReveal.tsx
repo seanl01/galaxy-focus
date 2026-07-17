@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
-// A burst of angular glyphs that continuously reshuffle, then decode
-// left-to-right into the real title — an "ancient computer translating an
-// alien script" reveal. We use a Runic subset rather than bundling a
-// restrictively-licensed Aurebesh font; the geometry reads the same way and
-// keeps to the project's procedural, dependency-free aesthetic.
-const GLYPHS = "ᚨᚱᚲᚷᚺᛁᛃᛈᛊᛏᛒᛖᛗᛚᛜᛞᛟᚦᚹᚾᛇᚠᚢᚩᛉᛘᛦᚧᚴᛥᛠ";
+// A burst of glyphs that continuously reshuffle, then decode left-to-right
+// into the real title — an "ancient computer translating an alien script"
+// reveal. Scrambling characters are plain A–Z rendered in the Aurebesh face
+// (Droidobesh Depot, applied via .glyph-char), which maps the Latin alphabet
+// onto Aurebesh glyphs; on lock they revert to the UI font and real text.
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-const randGlyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+const randGlyph = () => ALPHABET[(Math.random() * ALPHABET.length) | 0];
 
 interface GlyphRevealProps {
   text: string;
