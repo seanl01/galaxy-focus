@@ -10,7 +10,7 @@ import CockpitHUD from "@/components/CockpitHUD";
 import Hyperspace from "@/components/Hyperspace";
 import PlanetDisc from "@/components/PlanetDisc";
 import { useStore, ActiveJourney } from "@/lib/store";
-import { PLANET_MAP, SHIP_MAP } from "@/lib/data";
+import { PLANET_MAP, SHIP_MAP, planetBackground } from "@/lib/data";
 import { formatClock, formatDistance, formatMinutes } from "@/lib/format";
 import {
   isAmbiencePlaying,
@@ -108,6 +108,14 @@ export default function FlightPage() {
 
   // Stop ambience when leaving the page.
   useEffect(() => stopAmbience, []);
+
+  // Preload the arrival backdrop while still on approach, so the reveal
+  // at touchdown never pops in half-loaded.
+  useEffect(() => {
+    if (phase !== "approach" || !active) return;
+    const img = new window.Image();
+    img.src = planetBackground(active.destinationId);
+  }, [phase, active]);
 
   const toggleMusic = useCallback(() => {
     if (isAmbiencePlaying()) {
@@ -455,6 +463,27 @@ export default function FlightPage() {
         </>
       )}
 
+      {/* Planet-specific arrival backdrop: slow reveal under the card. */}
+      <AnimatePresence>
+        {phase === "arrived" && completed && (
+          <motion.div
+            key="arrival-bg"
+            initial={{ opacity: 0, scale: 1.08 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 4.5, ease: "easeOut" }}
+            className="absolute inset-0 z-[9] overflow-hidden"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={planetBackground(destination.id)}
+              alt={destination.name}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-space-950/60 via-space-950/10 to-space-950/70" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ------------------------------------------------ arrival */}
       <AnimatePresence>
         {phase === "arrived" && completed && (
@@ -463,7 +492,7 @@ export default function FlightPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.6, delay: 0.6 }}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-gradient-to-b from-transparent via-space-950/30 to-space-950/80 px-6"
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 px-6"
           >
             <motion.p
               initial={{ opacity: 0, y: 10 }}

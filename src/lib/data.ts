@@ -84,6 +84,11 @@ export const MIN_PER_KLY = 2.5;
 // rewriting, so prefix them explicitly.
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+/** Full-bleed arrival background for a planet (see public/planets/). */
+export function planetBackground(id: string): string {
+  return `${BASE}/planets/${id}.jpeg`;
+}
+
 export const PLANETS: Planet[] = [
   // Core Worlds -------------------------------------------------------------
   {
