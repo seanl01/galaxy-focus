@@ -1,149 +1,59 @@
 "use client";
 
 // Hidden chase-view tuning page (not linked from the nav).
-// Adjust the sliders until the ship reads right, then copy the values
-// from the readout box. Values map 1:1 onto the chase pose in ShipModel.
+// Drives the real ChaseView scene: adjust the sliders until the ship reads
+// right, then copy the readout. yaw is an offset on top of the ship's
+// noseYaw; cam/look map 1:1 onto the camera pose in ChaseView.
 
-import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import Hyperspace from "@/components/Hyperspace";
+import { useRef, useState } from "react";
+import ChaseView, { ChaseTuning } from "@/components/ChaseView";
 import { SHIPS } from "@/lib/data";
 
-interface Params {
-  yawDeg: number; // inner.rotation.y
-  pitchDeg: number; // inner.rotation.x
-  rollDeg: number; // inner.rotation.z
-  camX: number;
-  camY: number;
-  camZ: number;
-  lookY: number;
-  lookZ: number;
-}
-
-const DEG = Math.PI / 180;
-
-function defaultsFor(shipIndex: number): Params {
+function defaultsFor(shipIndex: number): ChaseTuning {
   const ship = SHIPS[shipIndex];
   return {
-    yawDeg: Math.round((ship.noseYaw / DEG + 5.7) * 10) / 10,
-    pitchDeg: 6.9,
+    yawDeg: 0,
+    pitchDeg: 0,
     rollDeg: 0,
     camX: 0,
-    camY: 1.35,
-    camZ: Math.round(2.35 * ship.modelZoom * 100) / 100,
-    lookY: -0.05,
-    lookZ: -0.6,
+    camY: 1.3,
+    camZ: Math.round(4.9 * ship.modelZoom * 100) / 100,
+    lookY: -0.55,
+    lookZ: -7,
+    warp: 1,
   };
 }
 
 const SLIDERS: {
-  key: keyof Params;
+  key: keyof ChaseTuning;
   label: string;
   min: number;
   max: number;
   step: number;
 }[] = [
-  { key: "yawDeg", label: "Ship yaw (°)", min: 0, max: 360, step: 0.5 },
-  { key: "pitchDeg", label: "Ship pitch (°)", min: -60, max: 60, step: 0.5 },
-  { key: "rollDeg", label: "Ship roll (°)", min: -60, max: 60, step: 0.5 },
-  { key: "camX", label: "Camera X", min: -2, max: 2, step: 0.05 },
-  { key: "camY", label: "Camera Y (height)", min: -1, max: 3.5, step: 0.05 },
-  { key: "camZ", label: "Camera Z (distance)", min: 0.8, max: 6, step: 0.05 },
-  { key: "lookY", label: "Look-at Y", min: -1.5, max: 1.5, step: 0.05 },
-  { key: "lookZ", label: "Look-at Z", min: -3, max: 1, step: 0.05 },
+  { key: "yawDeg", label: "Ship yaw offset (°)", min: -180, max: 180, step: 0.5 },
+  { key: "pitchDeg", label: "Ship pitch (°)", min: -45, max: 45, step: 0.5 },
+  { key: "rollDeg", label: "Ship roll (°)", min: -45, max: 45, step: 0.5 },
+  { key: "camX", label: "Camera X", min: -3, max: 3, step: 0.05 },
+  { key: "camY", label: "Camera Y (height)", min: -1, max: 4, step: 0.05 },
+  { key: "camZ", label: "Camera Z (distance)", min: 1, max: 9, step: 0.05 },
+  { key: "lookY", label: "Look-at Y", min: -2, max: 2, step: 0.05 },
+  { key: "lookZ", label: "Look-at Z (ahead)", min: -20, max: 0, step: 0.25 },
+  { key: "warp", label: "Warp", min: 0, max: 1, step: 0.05 },
 ];
 
 export default function TunePage() {
   const [shipIndex, setShipIndex] = useState(0);
-  const [params, setParams] = useState<Params>(() => defaultsFor(0));
-  const paramsRef = useRef(params);
-  paramsRef.current = params;
-  const mountRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const mount = mountRef.current;
-    if (!mount) return;
-    const ship = SHIPS[shipIndex];
-
-    const width = mount.clientWidth;
-    const height = mount.clientHeight;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(width, height);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
-    mount.appendChild(renderer.domElement);
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100);
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    scene.environment = envTexture;
-    scene.environmentIntensity = 0.35;
-    const tunnel = new THREE.DirectionalLight(0x9cc8ff, 3.2);
-    tunnel.position.set(0, 1.5, -5);
-    scene.add(tunnel);
-    const tunnelLow = new THREE.DirectionalLight(0x6f9fe8, 1.4);
-    tunnelLow.position.set(0, -2.5, -3);
-    scene.add(tunnelLow);
-    const fill = new THREE.DirectionalLight(0xffe2c0, 0.5);
-    fill.position.set(1.5, 3, 4);
-    scene.add(fill);
-    scene.add(new THREE.HemisphereLight(0x8fb3e8, 0x0a0d18, 0.5));
-
-    const inner = new THREE.Group();
-    scene.add(inner);
-
-    let disposed = false;
-    let raf = 0;
-    new GLTFLoader().loadAsync(ship.model).then((gltf) => {
-      if (disposed) return;
-      const object = gltf.scene;
-      const box = new THREE.Box3().setFromObject(object);
-      const center = box.getCenter(new THREE.Vector3());
-      const sphere = box.getBoundingSphere(new THREE.Sphere());
-      object.position.sub(center);
-      object.scale.setScalar(1 / (sphere.radius || 1));
-      inner.add(object);
-
-      const render = () => {
-        if (disposed) return;
-        const p = paramsRef.current;
-        inner.rotation.set(p.pitchDeg * DEG, p.yawDeg * DEG, p.rollDeg * DEG);
-        camera.position.set(p.camX, p.camY, p.camZ);
-        camera.lookAt(0, p.lookY, p.lookZ);
-        renderer.render(scene, camera);
-        raf = requestAnimationFrame(render);
-      };
-      raf = requestAnimationFrame(render);
-    });
-
-    return () => {
-      disposed = true;
-      cancelAnimationFrame(raf);
-      envTexture.dispose();
-      pmrem.dispose();
-      renderer.dispose();
-      renderer.forceContextLoss();
-      if (renderer.domElement.parentElement === mount) {
-        mount.removeChild(renderer.domElement);
-      }
-    };
-  }, [shipIndex]);
+  const [params, setParams] = useState<ChaseTuning>(() => defaultsFor(0));
+  const tuningRef = useRef<ChaseTuning>(params);
+  tuningRef.current = params;
 
   const ship = SHIPS[shipIndex];
-  const readout = `${ship.id}: yaw=${params.yawDeg}° pitch=${params.pitchDeg}° roll=${params.rollDeg}° cam=(${params.camX}, ${params.camY}, ${params.camZ}) look=(0, ${params.lookY}, ${params.lookZ})`;
+  const readout = `${ship.id}: yawOff=${params.yawDeg}° pitch=${params.pitchDeg}° roll=${params.rollDeg}° cam=(${params.camX}, ${params.camY}, ${params.camZ}) look=(0, ${params.lookY}, ${params.lookZ})`;
 
   return (
     <main className="relative h-screen select-none overflow-hidden bg-space-950">
-      <Hyperspace warp={1} />
-      <div
-        ref={mountRef}
-        className="pointer-events-none absolute left-1/2 top-[8%] z-10 h-[347px] w-[560px] -translate-x-1/2"
-        key={shipIndex}
-      />
+      <ChaseView key={ship.id} shipId={ship.id} warp={1} tuningRef={tuningRef} />
 
       {/* control panel */}
       <div className="glass absolute right-4 top-4 z-20 w-80 p-5">

@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import ChaseView from "@/components/ChaseView";
 import Hyperspace from "@/components/Hyperspace";
 import PlanetDisc from "@/components/PlanetDisc";
-import ShipModel from "@/components/ShipModel";
 import { useStore, ActiveJourney } from "@/lib/store";
 import { PLANET_MAP, SHIP_MAP } from "@/lib/data";
 import { formatClock, formatDistance, formatMinutes } from "@/lib/format";
@@ -22,6 +22,10 @@ import {
 type Phase = "countdown" | "cruise" | "approach" | "arrived";
 
 const COUNTDOWN_SECONDS = 3;
+
+// Tiling fractal-noise film grain, inlined so no asset request is needed.
+const GRAIN =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E\")";
 
 export default function FlightPage() {
   const store = useStore();
@@ -148,6 +152,9 @@ export default function FlightPage() {
   const approachProgress =
     phase === "approach" ? 1 - remaining / approachAt : phase === "arrived" ? 1 : 0;
 
+  const inFlight = phase === "cruise" || phase === "approach";
+  const exteriorActive = inFlight && view === "exterior";
+
   const cancelJump = () => {
     store.abortJourney();
     router.push("/map");
@@ -161,7 +168,32 @@ export default function FlightPage() {
 
   return (
     <main className="relative h-screen select-none overflow-hidden bg-space-950">
-      <Hyperspace warp={warp} />
+      {/* 2D radial tunnel carries countdown/cockpit; it hands off to the
+          3D chase scene in exterior view so there's a single vanishing point. */}
+      <Hyperspace
+        warp={warp}
+        className={`transition-opacity duration-1000 ${
+          exteriorActive ? "opacity-0" : "opacity-100"
+        }`}
+      />
+
+      {/* Faint nebula wash behind the 3D scene (exterior only) */}
+      <AnimatePresence>
+        {exteriorActive && (
+          <motion.div
+            key="nebula"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.6 }}
+            className="pointer-events-none absolute inset-0 z-[1]"
+            style={{
+              background:
+                "radial-gradient(ellipse 85% 60% at 50% 28%, rgba(48, 76, 158, 0.30), transparent 70%), radial-gradient(ellipse 60% 50% at 72% 74%, rgba(92, 54, 148, 0.16), transparent 70%)",
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Approaching planet grows behind everything */}
       <AnimatePresence>
@@ -262,89 +294,182 @@ export default function FlightPage() {
             </motion.div>
           </div>
 
-          {/* exterior ship */}
-          <AnimatePresence>
-            {view === "exterior" && (
-              <motion.div
-                key="ship"
-                initial={{ opacity: 0, y: 40, x: "-50%" }}
-                animate={{ opacity: 1, y: 0, x: "-50%" }}
-                exit={{ opacity: 0, y: 40, x: "-50%" }}
-                transition={{ duration: 1.2 }}
-                className="pointer-events-none absolute left-1/2 top-[8%] z-0"
-              >
-<ShipModel shipId={ship.id} size={560} view="chase" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* timer */}
-          <div className="flex flex-1 flex-col items-center justify-center gap-3">
-            {phase === "approach" && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1.5 }}
-                className="label-caps"
-              >
-                Approaching {destination.name}
-              </motion.p>
-            )}
-            <motion.p
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.4, delay: 0.4 }}
-              className="text-[16vw] font-extralight leading-none tabular-nums tracking-tight text-slate-100 md:text-[9rem]"
-              style={{ textShadow: "0 0 60px rgba(143, 179, 255, 0.35)" }}
-            >
-              {formatClock(remaining)}
-            </motion.p>
-            <p className="label-caps">
-              {journey.paused ? "Paused" : "Focus Session"}
-            </p>
-          </div>
-
-          {/* controls */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.8 }}
-            className="flex items-center justify-center gap-4 pb-10"
-          >
-            <button
-              onClick={() => {
-                if (store.settings.sound) playClick();
-                journey.paused ? store.resumeJourney() : store.pauseJourney();
-              }}
-              className="btn-ghost min-w-36"
-            >
-              {journey.paused ? "Resume" : "Pause"}
-            </button>
-            {confirmEnd ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={endFlight}
-                  className="rounded-xl border border-red-400/40 px-6 py-3 text-sm uppercase tracking-[0.2em] text-red-300 transition-colors hover:bg-red-400/10"
+          {/* cockpit: the timer is the hero */}
+          {!exteriorActive && (
+            <>
+              <div className="flex flex-1 flex-col items-center justify-center gap-3">
+                {phase === "approach" && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.5 }}
+                    className="label-caps"
+                  >
+                    Approaching {destination.name}
+                  </motion.p>
+                )}
+                <motion.p
+                  initial={{ opacity: 0, scale: 0.94 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1.4, delay: 0.4 }}
+                  className="text-[16vw] font-extralight leading-none tabular-nums tracking-tight text-slate-100 md:text-[9rem]"
+                  style={{ textShadow: "0 0 60px rgba(143, 179, 255, 0.35)" }}
                 >
-                  Confirm End
-                </button>
-                <button
-                  onClick={() => setConfirmEnd(false)}
-                  className="btn-ghost px-5 py-3 text-xs"
-                >
-                  Keep Flying
-                </button>
+                  {formatClock(remaining)}
+                </motion.p>
+                <p className="label-caps">
+                  {journey.paused ? "Paused" : "Focus Session"}
+                </p>
               </div>
-            ) : (
-              <button
-                onClick={() => setConfirmEnd(true)}
-                className="btn-ghost min-w-36 border-white/10 text-slate-500 hover:text-slate-300"
+
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.8 }}
+                className="flex items-center justify-center gap-4 pb-10"
               >
-                End Flight
-              </button>
-            )}
-          </motion.div>
+                <button
+                  onClick={() => {
+                    if (store.settings.sound) playClick();
+                    journey.paused ? store.resumeJourney() : store.pauseJourney();
+                  }}
+                  className="btn-ghost min-w-36"
+                >
+                  {journey.paused ? "Resume" : "Pause"}
+                </button>
+                {confirmEnd ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={endFlight}
+                      className="rounded-xl border border-red-400/40 px-6 py-3 text-sm uppercase tracking-[0.2em] text-red-300 transition-colors hover:bg-red-400/10"
+                    >
+                      Confirm End
+                    </button>
+                    <button
+                      onClick={() => setConfirmEnd(false)}
+                      className="btn-ghost px-5 py-3 text-xs"
+                    >
+                      Keep Flying
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmEnd(true)}
+                    className="btn-ghost min-w-36 border-white/10 text-slate-500 hover:text-slate-300"
+                  >
+                    End Flight
+                  </button>
+                )}
+              </motion.div>
+            </>
+          )}
+
+          {/* exterior: the journey is the hero, the timer becomes a floating HUD */}
+          {exteriorActive && (
+            <motion.div
+              key="hud"
+              initial={{ opacity: 0, y: 24, x: "-50%" }}
+              animate={{ opacity: 1, y: 0, x: "-50%" }}
+              transition={{ duration: 1.2, delay: 0.4 }}
+              className="absolute bottom-10 left-1/2"
+            >
+              <motion.div
+                animate={{ y: [-3, 3] }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                  ease: "easeInOut",
+                }}
+                className="glass flex flex-col items-center gap-1 rounded-3xl px-10 py-5"
+              >
+                <p className="label-caps">
+                  {phase === "approach"
+                    ? `Approaching ${destination.name}`
+                    : journey.paused
+                      ? "Paused"
+                      : "Focus Session"}
+                </p>
+                <p
+                  className="text-5xl font-extralight tabular-nums tracking-tight text-slate-100"
+                  style={{ textShadow: "0 0 40px rgba(143, 179, 255, 0.4)" }}
+                >
+                  {formatClock(remaining)}
+                </p>
+                <div className="mt-1.5 flex items-center gap-4">
+                  <button
+                    onClick={() => {
+                      if (store.settings.sound) playClick();
+                      journey.paused
+                        ? store.resumeJourney()
+                        : store.pauseJourney();
+                    }}
+                    className="text-[11px] uppercase tracking-[0.2em] text-slate-300 transition-colors hover:text-glow-gold"
+                  >
+                    {journey.paused ? "Resume" : "Pause"}
+                  </button>
+                  <span className="text-white/15">·</span>
+                  {confirmEnd ? (
+                    <>
+                      <button
+                        onClick={endFlight}
+                        className="text-[11px] uppercase tracking-[0.2em] text-red-300 transition-colors hover:text-red-200"
+                      >
+                        Confirm End
+                      </button>
+                      <button
+                        onClick={() => setConfirmEnd(false)}
+                        className="text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-slate-200"
+                      >
+                        Keep Flying
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmEnd(true)}
+                      className="text-[11px] uppercase tracking-[0.2em] text-slate-500 transition-colors hover:text-slate-300"
+                    >
+                      End Flight
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
         </div>
+      )}
+
+      {/* full-screen 3D chase scene: ship + streaks share one vanishing point */}
+      <AnimatePresence>
+        {exteriorActive && (
+          <motion.div
+            key="chase"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2 }}
+            className="pointer-events-none absolute inset-0 z-[6]"
+          >
+            <ChaseView shipId={ship.id} warp={warp} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* cinematic finish: vignette + very subtle film grain */}
+      {inFlight && (
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 z-[8]"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, transparent 55%, rgba(2, 4, 12, 0.55) 100%)",
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 z-[8] opacity-[0.05]"
+            style={{ backgroundImage: GRAIN, backgroundSize: "160px 160px" }}
+          />
+        </>
       )}
 
       {/* ------------------------------------------------ arrival */}
