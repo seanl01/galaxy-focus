@@ -70,6 +70,9 @@ under `public/models/`:
 
 Credits are also shown in-app under Settings → Model Credits.
 
+Cockpit metal textures are CC0 assets from
+[ambientCG](https://ambientcg.com) (Metal046B, MetalPlates001).
+
 ## Structure
 
 ```

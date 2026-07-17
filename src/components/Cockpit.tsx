@@ -10,6 +10,12 @@
 // Deterministic pseudo-random so the prerendered HTML matches hydration.
 const pr = (i: number) => ((i * 9301 + 49297) % 233280) / 233280;
 
+// Tileable CC0 metal textures (ambientCG), served under the base path.
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const TEX_SCUFF = `${BASE}/textures/metal-scuffed.jpg`;
+const TEX_PLATES = `${BASE}/textures/metal-plates.jpg`;
+const DASH_RADIUS = "34% 34% 0 0 / 9% 9% 0 0";
+
 function Lights({
   count,
   seed,
@@ -184,6 +190,31 @@ export default function Cockpit() {
               "linear-gradient(to left, #070a12 0%, #070a12 55%, rgba(9,13,22,0.85) 75%, rgba(9,13,22,0.35) 90%, transparent 100%)",
           }}
         />
+        {/* faint hull plating on the walls, fading with the same falloff */}
+        <div
+          className="absolute inset-y-0 left-0 w-[17%]"
+          style={{
+            backgroundImage: `url(${TEX_PLATES})`,
+            backgroundSize: "460px",
+            opacity: 0.2,
+            maskImage:
+              "linear-gradient(to right, black 0%, black 55%, transparent 95%)",
+            WebkitMaskImage:
+              "linear-gradient(to right, black 0%, black 55%, transparent 95%)",
+          }}
+        />
+        <div
+          className="absolute inset-y-0 right-0 w-[17%]"
+          style={{
+            backgroundImage: `url(${TEX_PLATES})`,
+            backgroundSize: "460px",
+            opacity: 0.2,
+            maskImage:
+              "linear-gradient(to left, black 0%, black 55%, transparent 95%)",
+            WebkitMaskImage:
+              "linear-gradient(to left, black 0%, black 55%, transparent 95%)",
+          }}
+        />
 
         {/* Faint volumetric haze at the tunnel core. */}
         <div
@@ -204,10 +235,40 @@ export default function Cockpit() {
             className="absolute inset-x-[-4%] top-0 h-full"
             style={{
               background:
-                "linear-gradient(to bottom, #0d1220 0%, #0a0e18 30%, #05070d 100%)",
-              borderRadius: "34% 34% 0 0 / 9% 9% 0 0",
+                "linear-gradient(to bottom, #10162a 0%, #0b101d 30%, #060910 100%)",
+              borderRadius: DASH_RADIUS,
               boxShadow:
                 "0 -1px 0 rgba(255,255,255,0.07), 0 -8px 32px rgba(90,130,235,0.08)",
+            }}
+          />
+          {/* riveted panel plating */}
+          <div
+            className="absolute inset-x-[-4%] top-0 h-full overflow-hidden"
+            style={{
+              backgroundImage: `url(${TEX_PLATES})`,
+              backgroundSize: "620px",
+              borderRadius: DASH_RADIUS,
+              opacity: 0.36,
+            }}
+          />
+          {/* scuffed-metal mottling on top of the plates */}
+          <div
+            className="absolute inset-x-[-4%] top-0 h-full mix-blend-overlay"
+            style={{
+              backgroundImage: `url(${TEX_SCUFF})`,
+              backgroundSize: "340px",
+              borderRadius: DASH_RADIUS,
+              opacity: 0.85,
+            }}
+          />
+          {/* re-shade: pull the plating back into the cockpit's gloom and
+              let the tunnel's blue rim-light catch the cowl's top edge */}
+          <div
+            className="absolute inset-x-[-4%] top-0 h-full"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(120,160,240,0.10) 0%, rgba(6,9,16,0.25) 18%, rgba(4,6,10,0.62) 70%, rgba(3,5,9,0.78) 100%)",
+              borderRadius: DASH_RADIUS,
             }}
           />
           {/* console screens */}
