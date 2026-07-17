@@ -222,8 +222,6 @@ export default function ChaseView({
     });
     const glow = new THREE.Sprite(glowMaterial);
     const engineLight = new THREE.PointLight(0x86b8ff, 0, 6);
-    rig.add(glow);
-    rig.add(engineLight);
 
     const reduceMotion =
       window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
@@ -242,13 +240,26 @@ export default function ChaseView({
       object.position.sub(center);
       object.scale.setScalar(1 / (sphere.radius || 1));
       inner.add(object);
-      inner.rotation.y = ship.noseYaw; // nose exactly down -Z, the travel axis
 
-      // Engine glow sits at the stern — the +Z face once the nose points -Z.
+      // Find the stern while the nose points exactly down -Z, then parent the
+      // engine glow inside `inner` so it follows any pose applied on top.
+      inner.rotation.set(0, ship.noseYaw, 0);
       const posed = new THREE.Box3().setFromObject(inner);
-      glow.position.set(0, 0, Math.max(0.25, posed.max.z * 0.9));
+      const stern = new THREE.Vector3(0, 0, Math.max(0.25, posed.max.z * 0.9));
+      stern.applyAxisAngle(new THREE.Vector3(0, 1, 0), -ship.noseYaw);
+      glow.position.copy(stern);
       glow.scale.setScalar(1.1);
-      engineLight.position.copy(glow.position).add(new THREE.Vector3(0, 0, 0.3));
+      engineLight.position.copy(stern);
+      inner.add(glow);
+      inner.add(engineLight);
+
+      // Baked chase pose (hand-tuned via /tune).
+      const pose = ship.chase;
+      inner.rotation.set(
+        pose.pitch * DEG,
+        ship.noseYaw + pose.yawOff * DEG,
+        pose.roll * DEG
+      );
 
       loadedAt = performance.now();
     });
@@ -303,19 +314,20 @@ export default function ChaseView({
         camera.position.set(tune.camX, tune.camY, tune.camZ);
         camera.lookAt(0, tune.lookY, tune.lookZ);
       } else {
-        // Behind and above, on the travel axis, looking down-tunnel past
-        // the ship — plus drift, a touch of shake deep in warp, and a
-        // lagged copy of the ship's bank.
+        // Behind the ship on the travel axis, looking down-tunnel — plus
+        // drift, a touch of shake deep in warp, and a lagged copy of the
+        // ship's bank. Base framing comes from the ship's baked chase pose.
+        const pose = ship.chase;
         const shake = reduceMotion ? 0 : Math.max(0, w - 0.55) * 0.014;
         camera.position.set(
           (reduceMotion ? 0 : drift(t, 0.11, 0.23) * 0.1) +
             Math.sin(t * 13.1) * shake,
-          1.3 +
+          pose.camY +
             (reduceMotion ? 0 : drift(t, 0.09, 0.19) * 0.06) +
             Math.sin(t * 16.7) * shake,
-          4.9 * ship.modelZoom
+          pose.camZ
         );
-        camera.lookAt(0, -0.55, -7);
+        camera.lookAt(0, pose.lookY, pose.lookZ);
         camRoll += (rig.rotation.z * 0.28 - camRoll) * Math.min(1, dt * 2);
         camera.rotateZ(-camRoll);
       }

@@ -10,16 +10,16 @@ import ChaseView, { ChaseTuning } from "@/components/ChaseView";
 import { SHIPS } from "@/lib/data";
 
 function defaultsFor(shipIndex: number): ChaseTuning {
-  const ship = SHIPS[shipIndex];
+  const c = SHIPS[shipIndex].chase;
   return {
-    yawDeg: 0,
-    pitchDeg: 0,
-    rollDeg: 0,
+    yawDeg: c.yawOff,
+    pitchDeg: c.pitch,
+    rollDeg: c.roll,
     camX: 0,
-    camY: 1.3,
-    camZ: Math.round(4.9 * ship.modelZoom * 100) / 100,
-    lookY: -0.55,
-    lookZ: -7,
+    camY: c.camY,
+    camZ: c.camZ,
+    lookY: c.lookY,
+    lookZ: c.lookZ,
     warp: 1,
   };
 }

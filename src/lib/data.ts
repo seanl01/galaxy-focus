@@ -37,6 +37,16 @@ export interface Route {
   duration: number; // minutes
 }
 
+export interface ChasePose {
+  yawOff: number; // degrees on top of noseYaw
+  pitch: number; // degrees
+  roll: number; // degrees
+  camY: number;
+  camZ: number;
+  lookY: number;
+  lookZ: number;
+}
+
 export interface Ship {
   id: string;
   name: string;
@@ -46,8 +56,21 @@ export interface Ship {
   modelYaw: number; // turntable pose: rotation for a pleasing 3/4 angle
   noseYaw: number; // chase pose: rotation that points the nose away from camera
   modelZoom: number; // camera distance multiplier
+  chase: ChasePose; // exterior-view framing, tuned by hand via /tune
   credit: string; // CC-BY attribution (see README)
 }
+
+// Hand-tuned on the X-Wing via /tune; a slight three-quarter from astern.
+// Reused for every ship until a ship gets its own numbers.
+const DEFAULT_CHASE: ChasePose = {
+  yawOff: -24.5,
+  pitch: 6.5,
+  roll: -6.5,
+  camY: 0.65,
+  camZ: 4.9,
+  lookY: -0.2,
+  lookZ: -10.25,
+};
 
 export const KLY_PER_UNIT = 0.5;
 export const MIN_PER_KLY = 2.5;
@@ -317,6 +340,7 @@ export const SHIPS: Ship[] = [
     noseYaw: 0,
     modelYaw: Math.PI * 0.75,
     modelZoom: 1,
+    chase: DEFAULT_CHASE,
     credit: "x-wing by Alberto Calvo (CC-BY, poly.pizza)",
   },
   {
@@ -328,6 +352,7 @@ export const SHIPS: Ship[] = [
     noseYaw: Math.PI,
     modelYaw: Math.PI * 0.25,
     modelZoom: 1,
+    chase: DEFAULT_CHASE,
     credit: "Tie Fighter by David O'Brien (-BlanK-) (CC-BY, poly.pizza)",
   },
   {
@@ -339,6 +364,7 @@ export const SHIPS: Ship[] = [
     noseYaw: Math.PI,
     modelYaw: Math.PI * 0.85,
     modelZoom: 1.05,
+    chase: { ...DEFAULT_CHASE, camZ: 5.15 },
     credit: "Star Destroyer by Joe Scalise (CC-BY, poly.pizza)",
   },
   {
@@ -350,6 +376,7 @@ export const SHIPS: Ship[] = [
     noseYaw: Math.PI / 2,
     modelYaw: Math.PI * 0.65,
     modelZoom: 1,
+    chase: DEFAULT_CHASE,
     credit: "Speeder Bike by Joe Scalise (CC-BY, poly.pizza)",
   },
 ];
