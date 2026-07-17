@@ -101,9 +101,9 @@ export default function SettingsPage() {
               <div className="mt-4 flex items-center gap-4">
                 <input
                   type="range"
-                  min={5}
+                  min={1}
                   max={120}
-                  step={5}
+                  step={1}
                   value={s.customMinutes}
                   onChange={(e) =>
                     store.updateSettings({ customMinutes: Number(e.target.value) })

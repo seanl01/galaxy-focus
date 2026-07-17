@@ -1,9 +1,9 @@
 "use client";
 
 // Full-screen first-person cockpit interior, built from layered CSS.
-// The canopy is a circular cutout (a giant box-shadow around a round div),
-// so whatever renders behind — the hyperspace canvas, the approaching
-// planet — shows through, framed by struts, a dashboard and side pillars.
+// Deliberately frameless and ship-agnostic: an open view of hyperspace,
+// contained by dark side walls and a ceiling so the streak field never
+// bleeds off-screen, with an instrument dashboard across the bottom.
 // Everything here is decorative and pointer-events-none; the functional
 // HUD lives in CockpitHUD.
 
@@ -162,78 +162,38 @@ export default function Cockpit() {
   return (
     <div
       className="ck-drift pointer-events-none absolute inset-0 z-[7] overflow-hidden"
-      style={{ "--ck": "min(125vh, 88vw)" } as React.CSSProperties}
       aria-hidden
     >
       <div className="ck-vibe absolute inset-0">
-        {/* Cockpit shell: everything outside the canopy circle goes dark. */}
+        {/* Ceiling shading. */}
+        <div className="absolute inset-x-0 top-0 h-[20%] bg-gradient-to-b from-[#070a12] via-[#070a12]/65 to-transparent" />
+
+        {/* Side walls — solid at the screen edges so the hyperspace field
+            never bleeds off the sides, fading toward the open view. */}
         <div
-          className="absolute left-1/2 top-[45%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          className="absolute inset-y-0 left-0 w-[17%]"
           style={{
-            width: "var(--ck)",
-            height: "var(--ck)",
-            boxShadow: "0 0 0 4000px #070a12",
+            background:
+              "linear-gradient(to right, #070a12 0%, #070a12 55%, rgba(9,13,22,0.85) 75%, rgba(9,13,22,0.35) 90%, transparent 100%)",
           }}
         />
-
-        {/* Canopy rim: metal ring + soft blue interior glow. */}
         <div
-          className="absolute left-1/2 top-[45%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[6px] border-[#161d2b]"
+          className="absolute inset-y-0 right-0 w-[17%]"
           style={{
-            width: "var(--ck)",
-            height: "var(--ck)",
-            boxShadow:
-              "inset 0 0 60px rgba(90, 130, 235, 0.12), inset 0 0 4px rgba(255,255,255,0.12), 0 0 40px rgba(90,130,235,0.10)",
+            background:
+              "linear-gradient(to left, #070a12 0%, #070a12 55%, rgba(9,13,22,0.85) 75%, rgba(9,13,22,0.35) 90%, transparent 100%)",
           }}
         />
-
-        {/* Radial canopy struts. Their hub sits low, hidden behind the
-            dashboard, so only the upper spans cross the glass — spokes,
-            not a dark knot at the tunnel's vanishing point. */}
-        <div
-          className="absolute left-1/2 top-[78%]"
-          style={{ width: 0, height: 0 }}
-        >
-          {[-44, -22, 0, 22, 44].map((deg) => (
-            <div
-              key={deg}
-              className="absolute bottom-0 left-0 origin-bottom"
-              style={{
-                width: "9px",
-                height: "92vh",
-                transform: `translateX(-50%) rotate(${deg}deg)`,
-                background:
-                  "linear-gradient(to right, rgba(5,7,13,0.9), #182132 45%, #232e44 55%, rgba(5,7,13,0.9))",
-                boxShadow:
-                  "0 0 10px rgba(0,0,0,0.6), inset 0 0 1px rgba(150,180,240,0.4)",
-              }}
-            />
-          ))}
-        </div>
 
         {/* Faint volumetric haze at the tunnel core. */}
         <div
-          className="absolute left-1/2 top-[45%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          className="absolute left-1/2 top-[45%] h-[120vh] w-[120vh] -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: "var(--ck)",
-            height: "var(--ck)",
             background:
               "radial-gradient(circle, rgba(150,190,255,0.10) 0%, rgba(150,190,255,0.03) 32%, transparent 62%)",
           }}
         />
 
-        {/* Ceiling shading. */}
-        <div className="absolute inset-x-0 top-0 h-[22%] bg-gradient-to-b from-black/70 to-transparent" />
-
-        {/* Side pillars. */}
-        <div
-          className="absolute inset-y-0 left-0 w-[11%] bg-gradient-to-r from-[#0a0e18] via-[#0b101b] to-transparent"
-          style={{ clipPath: "polygon(0 0, 100% 10%, 100% 90%, 0 100%)" }}
-        />
-        <div
-          className="absolute inset-y-0 right-0 w-[11%] bg-gradient-to-l from-[#0a0e18] via-[#0b101b] to-transparent"
-          style={{ clipPath: "polygon(100% 0, 0 10%, 0 90%, 100% 100%)" }}
-        />
         <Lights count={4} seed={11} className="absolute left-[2.5%] top-[30%] flex-col" />
         <Lights count={4} seed={23} className="absolute right-[2.5%] top-[30%] flex-col" />
 
@@ -245,7 +205,7 @@ export default function Cockpit() {
             style={{
               background:
                 "linear-gradient(to bottom, #0d1220 0%, #0a0e18 30%, #05070d 100%)",
-              borderRadius: "48% 48% 0 0 / 16% 16% 0 0",
+              borderRadius: "34% 34% 0 0 / 9% 9% 0 0",
               boxShadow:
                 "0 -1px 0 rgba(255,255,255,0.07), 0 -8px 32px rgba(90,130,235,0.08)",
             }}
