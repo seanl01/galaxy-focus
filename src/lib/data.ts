@@ -411,7 +411,18 @@ export const SHIPS: Ship[] = [
     noseYaw: 0,
     modelYaw: Math.PI * 0.25,
     modelZoom: 1,
-    chase: DEFAULT_CHASE,
+    // Tuned by hand: dead-astern, nose up, pulled back to fit the long hull.
+    chase: {
+      yawOff: 0,
+      pitch: 15.5,
+      roll: 0,
+      camX: 0,
+      camY: 2.2,
+      camZ: 4.9,
+      lookY: 0.2,
+      lookZ: -17.25,
+      scale: 1.65,
+    },
     credit: "Razor Crest (Star Wars) model via Sketchfab",
   },
 ];
