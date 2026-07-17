@@ -15,11 +15,12 @@ function defaultsFor(shipIndex: number): ChaseTuning {
     yawDeg: c.yawOff,
     pitchDeg: c.pitch,
     rollDeg: c.roll,
-    camX: 0,
+    camX: c.camX,
     camY: c.camY,
     camZ: c.camZ,
     lookY: c.lookY,
     lookZ: c.lookZ,
+    scale: c.scale,
     warp: 1,
   };
 }
@@ -39,6 +40,7 @@ const SLIDERS: {
   { key: "camZ", label: "Camera Z (distance)", min: 1, max: 9, step: 0.05 },
   { key: "lookY", label: "Look-at Y", min: -2, max: 2, step: 0.05 },
   { key: "lookZ", label: "Look-at Z (ahead)", min: -20, max: 0, step: 0.25 },
+  { key: "scale", label: "Ship scale", min: 0.4, max: 2.5, step: 0.05 },
   { key: "warp", label: "Warp", min: 0, max: 1, step: 0.05 },
 ];
 
@@ -49,7 +51,7 @@ export default function TunePage() {
   tuningRef.current = params;
 
   const ship = SHIPS[shipIndex];
-  const readout = `${ship.id}: yawOff=${params.yawDeg}° pitch=${params.pitchDeg}° roll=${params.rollDeg}° cam=(${params.camX}, ${params.camY}, ${params.camZ}) look=(0, ${params.lookY}, ${params.lookZ})`;
+  const readout = `${ship.id}: yawOff=${params.yawDeg}° pitch=${params.pitchDeg}° roll=${params.rollDeg}° cam=(${params.camX}, ${params.camY}, ${params.camZ}) look=(0, ${params.lookY}, ${params.lookZ}) scale=${params.scale}`;
 
   return (
     <main className="relative h-screen select-none overflow-hidden bg-space-950">

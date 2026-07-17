@@ -16,6 +16,7 @@ export interface ChaseTuning {
   camZ: number;
   lookY: number;
   lookZ: number;
+  scale: number;
   warp: number;
 }
 
@@ -173,7 +174,7 @@ export default function ChaseView({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.1;
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -187,20 +188,37 @@ export default function ChaseView({
     const pmrem = new THREE.PMREMGenerator(renderer);
     const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = envTexture;
-    scene.environmentIntensity = 0.35;
+    // Low ambient floor: the hull should live in the tunnel's blue light,
+    // not a neutral studio wash — that's where the contrast comes from.
+    scene.environmentIntensity = 0.12;
 
-    // Hyperspace ahead of the nose: strong cool backlight, faint warm fill
-    // from the camera side so the hull reads without killing the rim.
-    const tunnel = new THREE.DirectionalLight(0x9cc8ff, 3.2);
+    // Hyperspace ahead of the nose: cool key (flickered per frame like
+    // light bouncing around the tunnel), deep blue underlight, and only a
+    // whisper of warm fill from the camera side. Kept dim on purpose —
+    // the hull should sit in the tunnel's gloom, lit in blue.
+    const tunnel = new THREE.DirectionalLight(0x8fbcff, 2.2);
     tunnel.position.set(0, 1.5, -5);
     scene.add(tunnel);
-    const tunnelLow = new THREE.DirectionalLight(0x6f9fe8, 1.4);
+    const tunnelLow = new THREE.DirectionalLight(0x3f6fd0, 0.9);
     tunnelLow.position.set(0, -2.5, -3);
     scene.add(tunnelLow);
-    const fill = new THREE.DirectionalLight(0xffe2c0, 0.5);
+    const fill = new THREE.DirectionalLight(0xffe2c0, 0.15);
     fill.position.set(1.5, 3, 4);
     scene.add(fill);
-    scene.add(new THREE.HemisphereLight(0x8fb3e8, 0x0a0d18, 0.5));
+    scene.add(new THREE.HemisphereLight(0x5d8ad8, 0x04060e, 0.22));
+
+    // Streak flashes: point lights that race down the tunnel past the hull,
+    // so passing streaks visibly sweep blue light across the ship.
+    const FLASHES = [
+      { x: 1.7, y: 0.9, speed: 11, phase: 0, tint: 0x6f9fff },
+      { x: -1.9, y: -0.5, speed: 15, phase: 9, tint: 0x5588ff },
+      { x: 0.4, y: 1.6, speed: 8, phase: 17, tint: 0x8fb8ff },
+    ].map((f) => {
+      const light = new THREE.PointLight(f.tint, 0, 8, 1.8);
+      scene.add(light);
+      return { ...f, light };
+    });
+    const FLASH_SPAN = 34; // world-units of travel per pass, z -26 → +8
 
     const streaks = buildStreakField();
     scene.add(streaks);
@@ -287,6 +305,27 @@ export default function ChaseView({
       streakUniforms.uScroll.value = scroll;
       streakUniforms.uWarp.value = reduceMotion ? Math.min(w, 0.25) : w;
 
+      // Tunnel light breathes/flickers with warp, like light bouncing off
+      // passing streaks rather than a constant studio key.
+      const flicker = reduceMotion
+        ? 0
+        : (Math.sin(t * 6.3) * 0.5 + Math.sin(t * 15.1 + 2.4) * 0.3) * w;
+      tunnel.intensity = 2.2 + flicker * 0.7;
+      tunnelLow.intensity = 0.9 + flicker * 0.2;
+
+      // Streak flashes racing past the hull: each light travels front → back
+      // and only burns near the middle of its pass, so the hull catches
+      // moving blue glints instead of steady illumination.
+      for (const f of FLASHES) {
+        const cycle = ((t * f.speed + f.phase) % FLASH_SPAN) / FLASH_SPAN;
+        const z = -26 + cycle * FLASH_SPAN;
+        f.light.position.set(f.x, f.y, z);
+        const envelope = Math.sin(cycle * Math.PI) ** 2;
+        f.light.intensity = reduceMotion
+          ? 0
+          : w * envelope * (3.5 + 1.5 * Math.sin(t * 9 + f.phase));
+      }
+
       // Ship micro-motion: holding formation in the tunnel.
       if (!reduceMotion && !tune) {
         rig.position.y = Math.sin(t * 0.5) * 0.07 + Math.sin(t * 0.83 + 2) * 0.03;
@@ -300,9 +339,10 @@ export default function ChaseView({
       const appear =
         loadedAt < 0 ? 0 : Math.min(1, (now - loadedAt) / 800);
       const pop = 1 - (1 - appear) * (1 - appear);
-      rig.scale.setScalar(0.94 + 0.06 * pop);
+      const baseScale = tune ? tune.scale : ship.chase.scale;
+      rig.scale.setScalar((0.94 + 0.06 * pop) * baseScale);
       const pulse = Math.sin(t * 2.1);
-      glowMaterial.opacity = pop * (0.42 + 0.14 * pulse) * (0.5 + 0.5 * w);
+      glowMaterial.opacity = pop * (0.28 + 0.1 * pulse) * (0.5 + 0.5 * w);
       engineLight.intensity = pop * (1.5 + 0.3 * pulse);
 
       if (tune) {
@@ -320,7 +360,8 @@ export default function ChaseView({
         const pose = ship.chase;
         const shake = reduceMotion ? 0 : Math.max(0, w - 0.55) * 0.014;
         camera.position.set(
-          (reduceMotion ? 0 : drift(t, 0.11, 0.23) * 0.1) +
+          pose.camX +
+            (reduceMotion ? 0 : drift(t, 0.11, 0.23) * 0.1) +
             Math.sin(t * 13.1) * shake,
           pose.camY +
             (reduceMotion ? 0 : drift(t, 0.09, 0.19) * 0.06) +

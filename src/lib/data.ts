@@ -41,10 +41,12 @@ export interface ChasePose {
   yawOff: number; // degrees on top of noseYaw
   pitch: number; // degrees
   roll: number; // degrees
+  camX: number;
   camY: number;
   camZ: number;
   lookY: number;
   lookZ: number;
+  scale: number; // apparent size multiplier on the normalized model
 }
 
 export interface Ship {
@@ -66,10 +68,12 @@ const DEFAULT_CHASE: ChasePose = {
   yawOff: -24.5,
   pitch: 6.5,
   roll: -6.5,
+  camX: 0,
   camY: 0.65,
   camZ: 4.9,
   lookY: -0.2,
   lookZ: -10.25,
+  scale: 1,
 };
 
 export const KLY_PER_UNIT = 0.5;
@@ -364,7 +368,18 @@ export const SHIPS: Ship[] = [
     noseYaw: Math.PI / 2,
     modelYaw: Math.PI * 0.35,
     modelZoom: 1.05,
-    chase: { ...DEFAULT_CHASE, camZ: 5.15 },
+    // Tuned by hand: dead-astern, low camera, hull filling the frame.
+    chase: {
+      yawOff: 0,
+      pitch: 6.5,
+      roll: 1,
+      camX: 0.05,
+      camY: 0.5,
+      camZ: 5.15,
+      lookY: -0.7,
+      lookZ: -10.25,
+      scale: 1.45,
+    },
     credit:
       "Low Poly Imperial Star Destroyer by Digital Sock (CC-BY 4.0, sketchfab.com)",
   },
