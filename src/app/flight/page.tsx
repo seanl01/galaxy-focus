@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import ChaseView from "@/components/ChaseView";
-import Cockpit from "@/components/Cockpit";
-import CockpitHUD from "@/components/CockpitHUD";
+import BridgeCockpit from "@/components/BridgeCockpit";
 import Hyperspace from "@/components/Hyperspace";
 import GlyphReveal from "@/components/GlyphReveal";
 import PlanetDisc from "@/components/PlanetDisc";
@@ -197,6 +196,9 @@ export default function FlightPage() {
 
   const inFlight = phase === "cruise" || phase === "approach";
   const exteriorActive = inFlight && view === "exterior";
+  // The cockpit view is the first-person bridge; it renders its own space
+  // view through the canopy, so the full-screen tunnel behind it is hidden.
+  const bridgeActive = inFlight && view === "cockpit";
   const progressFrac = total > 0 ? Math.min(1, elapsed / total) : 0;
 
   const cancelJump = () => {
@@ -223,7 +225,7 @@ export default function FlightPage() {
           exitCompress={exitCompress}
           snap={snapped}
           className={`transition-opacity duration-1000 ${
-            exteriorActive ? "opacity-0" : "opacity-100"
+            exteriorActive || bridgeActive ? "opacity-0" : "opacity-100"
           }`}
         />
       </div>
@@ -250,7 +252,7 @@ export default function FlightPage() {
           ahead, as if the ship dropped out of hyperspace on its doorstep —
           then grows gently through the orbital fly-in. */}
       <AnimatePresence>
-        {snapped && (
+        {snapped && !bridgeActive && (
           <motion.div
             key="planet"
             initial={{ opacity: 0, scale: 0.74, x: "-50%", y: "-50%" }}
@@ -377,25 +379,8 @@ export default function FlightPage() {
             </button>
           </motion.div>
 
-          {/* cockpit HUD: timer, minimap, readouts, destination card */}
-          {!exteriorActive && (
-            <CockpitHUD
-              journey={journey}
-              origin={origin}
-              destination={destination}
-              remaining={remaining}
-              progress={progressFrac}
-              now={now}
-              phase={phase === "approach" ? "approach" : "cruise"}
-              confirmEnd={confirmEnd}
-              setConfirmEnd={setConfirmEnd}
-              onTogglePause={() => {
-                if (store.settings.sound) playClick();
-                journey.paused ? store.resumeJourney() : store.pauseJourney();
-              }}
-              onEnd={endFlight}
-            />
-          )}
+          {/* the bridge itself renders below (z-7) so the exit flash and
+              vignette wash over the cockpit interior */}
 
           {/* exterior: the journey is the hero, the timer becomes a floating HUD */}
           {exteriorActive && (
@@ -472,32 +457,34 @@ export default function FlightPage() {
         </div>
       )}
 
-      {/* cockpit interior frame (decorative; HUD lives above it) */}
-      <AnimatePresence>
-        {inFlight && view === "cockpit" && (
-          <motion.div
-            key="cockpit"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-            className="pointer-events-none absolute inset-0 z-[7]"
-          >
-            {/* Tiny forward impulse at the snap — a train leaving a tunnel. */}
-            <motion.div
-              animate={
-                snapped && !store.settings.reduceMotion
-                  ? { scale: [1.016, 1] }
-                  : { scale: 1 }
-              }
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute inset-0"
-            >
-              <Cockpit />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* first-person bridge cockpit (canopy hyperspace + console instruments) */}
+      {bridgeActive && journey && (
+        <div className="absolute inset-0 z-[7]">
+          <BridgeCockpit
+            journey={journey}
+            origin={origin}
+            destination={destination}
+            remaining={remaining}
+            progress={progressFrac}
+            now={now}
+            phase={phase === "approach" ? "approach" : "cruise"}
+            warp={warp}
+            exitBoost={exitBoost}
+            exitCompress={exitCompress}
+            snap={snapped}
+            snapped={snapped}
+            revealProgress={revealProgress}
+            reduceMotion={store.settings.reduceMotion}
+            confirmEnd={confirmEnd}
+            setConfirmEnd={setConfirmEnd}
+            onTogglePause={() => {
+              if (store.settings.sound) playClick();
+              journey.paused ? store.resumeJourney() : store.pauseJourney();
+            }}
+            onEnd={endFlight}
+          />
+        </div>
+      )}
 
       {/* full-screen 3D chase scene: ship + streaks share one vanishing point */}
       <AnimatePresence>

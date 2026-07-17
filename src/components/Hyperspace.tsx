@@ -19,6 +19,9 @@ interface HyperspaceProps {
   exitCompress?: number;
   /** Hard-cut the eased warp to its target (the snap back to realspace). */
   snap?: boolean;
+  /** Trail/base RGB triplet (no alpha), e.g. "4, 6, 15". Deep blue reads as
+   *  space rather than black when the tunnel is viewed through a small window. */
+  trail?: string;
   className?: string;
 }
 
@@ -33,6 +36,7 @@ export default function Hyperspace({
   exitBoost = 0,
   exitCompress = 0,
   snap = false,
+  trail = "4, 6, 15",
   className = "",
 }: HyperspaceProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,6 +48,8 @@ export default function Hyperspace({
   compressRef.current = exitCompress;
   const snapRef = useRef(snap);
   snapRef.current = snap;
+  const trailRef = useRef(trail);
+  trailRef.current = trail;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -102,7 +108,7 @@ export default function Hyperspace({
 
       // Trail fade — deeper warp leaves longer trails, but keep enough
       // fade that the tunnel stays deep blue instead of washing to white.
-      ctx.fillStyle = `rgba(4, 6, 15, ${0.5 - w * 0.12})`;
+      ctx.fillStyle = `rgba(${trailRef.current}, ${0.5 - w * 0.12})`;
       ctx.fillRect(0, 0, width, height);
 
       const speedBase = reduceMotion

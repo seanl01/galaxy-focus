@@ -89,6 +89,11 @@ export function planetBackground(id: string): string {
   return `${BASE}/planets/${id}.jpeg`;
 }
 
+/** First-person bridge cockpit interior (see public/cockpit/). */
+export function cockpitBridge(): string {
+  return `${BASE}/cockpit/bridge.jpg`;
+}
+
 export const PLANETS: Planet[] = [
   // Core Worlds -------------------------------------------------------------
   {

@@ -71,6 +71,13 @@ under `public/models/`:
 
 Credits are also shown in-app under Settings → Model Credits.
 
+## Cockpit art
+
+The first-person bridge view (`public/cockpit/bridge.jpg`) is fitted around a
+provided cockpit interior render — the hyperspace canopy and the six console
+displays are mapped onto the image with a per-screen perspective (homography)
+transform. Confirm the image's license before publishing or merging to `main`.
+
 ## Font credit
 
 The title scramble/decode effect (`GlyphReveal`) renders glyphs in
