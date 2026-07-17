@@ -24,6 +24,27 @@ body {
   background: rgba(229, 193, 92, 0.35);
 }
 
+/* Aurebesh-style scramble/decode reveal (GlyphReveal). Glyphs glow blue
+   while scrambling, then settle to the heading's own color as they lock. */
+.glyph-char {
+  color: #96b6ff;
+  text-shadow: 0 0 12px rgba(143, 179, 255, 0.55);
+  transition:
+    color 80ms ease-out,
+    text-shadow 80ms ease-out;
+}
+.glyph-char.is-locked {
+  color: inherit;
+  text-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glyph-char {
+    color: inherit;
+    text-shadow: none;
+    transition: none;
+  }
+}
+
 @layer components {
   /* Frosted glass panel */
   .glass {

@@ -8,6 +8,7 @@ import ChaseView from "@/components/ChaseView";
 import Cockpit from "@/components/Cockpit";
 import CockpitHUD from "@/components/CockpitHUD";
 import Hyperspace from "@/components/Hyperspace";
+import GlyphReveal from "@/components/GlyphReveal";
 import PlanetDisc from "@/components/PlanetDisc";
 import { useStore, ActiveJourney } from "@/lib/store";
 import { PLANET_MAP, SHIP_MAP, planetBackground } from "@/lib/data";
@@ -576,7 +577,7 @@ export default function FlightPage() {
               transition={{ duration: 1.3, delay: 1.2 }}
               className="text-5xl font-light uppercase tracking-[0.2em] text-slate-100 md:text-7xl"
             >
-              {destination.name}
+              <GlyphReveal text={destination.name} delay={1200} scramble={420} />
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}

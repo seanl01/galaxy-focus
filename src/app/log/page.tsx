@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Starfield from "@/components/Starfield";
 import Nav from "@/components/Nav";
+import GlyphReveal from "@/components/GlyphReveal";
 import ShipModel from "@/components/ShipModel";
 import { useStore, JourneyRecord } from "@/lib/store";
 import { PLANET_MAP, PLANETS, SHIP_MAP } from "@/lib/data";
@@ -66,7 +67,7 @@ export default function LogPage() {
           transition={{ duration: 0.9 }}
           className="text-3xl font-light uppercase tracking-[0.25em] text-slate-100"
         >
-          Journey Log
+          <GlyphReveal text="Journey Log" delay={120} />
         </motion.h1>
 
         {/* stats */}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Starfield from "@/components/Starfield";
 import Nav from "@/components/Nav";
+import GlyphReveal from "@/components/GlyphReveal";
 import PlanetDisc from "@/components/PlanetDisc";
 import ShipModel from "@/components/ShipModel";
 import { useStore } from "@/lib/store";
@@ -49,7 +50,7 @@ export default function HomePage() {
           transition={{ duration: 1.1, delay: 0.25 }}
           className="text-5xl font-semibold uppercase tracking-[0.18em] text-slate-100 md:text-7xl"
         >
-          Focus Flight
+          <GlyphReveal text="Focus Flight" delay={250} />
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 16 }}

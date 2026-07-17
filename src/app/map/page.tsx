@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Starfield from "@/components/Starfield";
 import Nav from "@/components/Nav";
 import GalaxyMap from "@/components/GalaxyMap";
+import GlyphReveal from "@/components/GlyphReveal";
 import PlanetDisc from "@/components/PlanetDisc";
 import ShipModel from "@/components/ShipModel";
 import { useStore } from "@/lib/store";
@@ -101,9 +102,13 @@ export default function MapPage() {
               </div>
               <div>
                 <p className="label-caps">Destination</p>
-                <h2 className="mt-1 text-3xl font-medium text-slate-100">
-                  {selected.name}
-                </h2>
+                <GlyphReveal
+                  key={selected.id}
+                  as="h2"
+                  text={selected.name}
+                  className="mt-1 block text-3xl font-medium text-slate-100"
+                  scramble={260}
+                />
                 <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
                   {selected.region}
                 </p>
