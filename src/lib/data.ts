@@ -361,7 +361,8 @@ export const SHIPS: Ship[] = [
     noseYaw: Math.PI,
     modelYaw: Math.PI * 0.25,
     modelZoom: 1,
-    chase: DEFAULT_CHASE,
+    // Tuned by hand: nearly dead-astern, nose dipped into the tunnel.
+    chase: { ...DEFAULT_CHASE, yawOff: 0.5, pitch: 9.5, roll: -0.5 },
     credit: "Tie Fighter by David O'Brien (-BlanK-) (CC-BY, poly.pizza)",
   },
   {
