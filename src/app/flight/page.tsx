@@ -16,6 +16,7 @@ import {
   isAmbiencePlaying,
   playChime,
   playClick,
+  playExitThump,
   playJump,
   startAmbience,
   stopAmbience,
@@ -24,6 +25,13 @@ import {
 type Phase = "countdown" | "cruise" | "approach" | "arrived";
 
 const COUNTDOWN_SECONDS = 3;
+
+// Hyperspace exit choreography (seconds of session remaining):
+// destabilize (brighter, surging) → compress (streaks shrink to points)
+// → snap flash → stillness with the planet suddenly ahead → orbital fly-in.
+const EXIT_DESTAB = 10; // destabilization begins
+const EXIT_COMPRESS = 8; // streak compression begins
+const EXIT_SNAP = 7; // the flash — instant reversion to realspace
 
 // Tiling fractal-noise film grain, inlined so no asset request is needed.
 const GRAIN =
@@ -117,6 +125,19 @@ export default function FlightPage() {
     img.src = planetBackground(active.destinationId);
   }, [phase, active]);
 
+  // One restrained thump at the instant of the snap back to realspace.
+  const thumpedRef = useRef(false);
+  useEffect(() => {
+    if (phase !== "approach") {
+      thumpedRef.current = false;
+      return;
+    }
+    if (remaining <= EXIT_SNAP && !thumpedRef.current) {
+      thumpedRef.current = true;
+      if (store.settings.sound) playExitThump();
+    }
+  }, [phase, remaining, store.settings.sound]);
+
   const toggleMusic = useCallback(() => {
     if (isAmbiencePlaying()) {
       stopAmbience();
@@ -146,21 +167,32 @@ export default function FlightPage() {
   const destination = PLANET_MAP[active.destinationId];
   const ship = SHIP_MAP[active.shipId] ?? Object.values(SHIP_MAP)[0];
 
-  // Warp level per phase.
+  // Warp level per phase. Hyperspace holds full warp deep into the
+  // approach — the exit is a snap at EXIT_SNAP seconds, not a slow fade.
   const warp =
     phase === "countdown"
       ? elapsed / COUNTDOWN_SECONDS * 0.25
-      : phase === "cruise"
+      : phase === "cruise" || (phase === "approach" && remaining > EXIT_SNAP)
         ? journey?.paused
           ? 0.35
           : 1
-        : phase === "approach"
-          ? Math.max(0.08, (remaining / approachAt) * 0.8)
-          : 0;
+        : 0;
 
-  // Planet scale during approach/arrival.
-  const approachProgress =
-    phase === "approach" ? 1 - remaining / approachAt : phase === "arrived" ? 1 : 0;
+  // Exit choreography values driven off the ticking clock.
+  const exitBoost =
+    phase === "approach" && !journey?.paused && remaining > EXIT_SNAP
+      ? Math.max(0, Math.min(1, (EXIT_DESTAB - remaining) / (EXIT_DESTAB - EXIT_COMPRESS)))
+      : 0;
+  const exitCompress =
+    phase === "approach" || phase === "arrived"
+      ? Math.max(0, Math.min(1, (EXIT_COMPRESS - remaining) / (EXIT_COMPRESS - EXIT_SNAP)))
+      : 0;
+  const snapped =
+    (phase === "approach" && remaining <= EXIT_SNAP) || phase === "arrived";
+  // Orbital fly-in: 0 at the snap → 1 at touchdown.
+  const revealProgress = snapped
+    ? Math.max(0, Math.min(1, 1 - remaining / EXIT_SNAP))
+    : 0;
 
   const inFlight = phase === "cruise" || phase === "approach";
   const exteriorActive = inFlight && view === "exterior";
@@ -186,6 +218,9 @@ export default function FlightPage() {
       <div className="absolute inset-x-0 -top-[10%] h-[110%]">
         <Hyperspace
           warp={warp}
+          exitBoost={exitBoost}
+          exitCompress={exitCompress}
+          snap={snapped}
           className={`transition-opacity duration-1000 ${
             exteriorActive ? "opacity-0" : "opacity-100"
           }`}
@@ -210,24 +245,46 @@ export default function FlightPage() {
         )}
       </AnimatePresence>
 
-      {/* Approaching planet grows behind everything */}
+      {/* The planet is revealed at the snap — already enormous, dead
+          ahead, as if the ship dropped out of hyperspace on its doorstep —
+          then grows gently through the orbital fly-in. */}
       <AnimatePresence>
-        {(phase === "approach" || phase === "arrived") && (
+        {snapped && (
           <motion.div
             key="planet"
-            initial={{ opacity: 0, scale: 0.3, x: "-50%", y: "-50%" }}
+            initial={{ opacity: 0, scale: 0.74, x: "-50%", y: "-50%" }}
             animate={{
-              opacity: 0.4 + approachProgress * 0.6,
-              scale: 0.35 + approachProgress * (phase === "arrived" ? 1.05 : 0.75),
+              opacity: 1,
+              scale: 0.78 + revealProgress * 0.3,
               x: "-50%",
               y: "-50%",
             }}
-            transition={{ duration: 2.4, ease: "easeOut" }}
-            className="pointer-events-none absolute left-1/2 top-1/2 z-[5]"
+            transition={{
+              opacity: { duration: 0.18 },
+              scale: { duration: 1.4, ease: "easeOut" },
+            }}
+            className="pointer-events-none absolute left-1/2 top-[45%] z-[5]"
           >
-            <PlanetDisc planet={destination} size={560} />
+            <div className="animate-float-slow">
+              <PlanetDisc planet={destination} size={560} />
+            </div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Exit flash: a near-instant white-blue snap, no dissolve. */}
+      <AnimatePresence>
+        {snapped && phase === "approach" && remaining > EXIT_SNAP - 1.2 &&
+          !store.settings.reduceMotion && (
+            <motion.div
+              key="exit-flash"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.95, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.45, times: [0, 0.18, 1], ease: "easeOut" }}
+              className="pointer-events-none absolute inset-0 z-[9] bg-[#dfeaff]"
+            />
+          )}
       </AnimatePresence>
 
       {/* ------------------------------------------------ countdown */}
@@ -425,7 +482,18 @@ export default function FlightPage() {
             transition={{ duration: 1 }}
             className="pointer-events-none absolute inset-0 z-[7]"
           >
-            <Cockpit />
+            {/* Tiny forward impulse at the snap — a train leaving a tunnel. */}
+            <motion.div
+              animate={
+                snapped && !store.settings.reduceMotion
+                  ? { scale: [1.016, 1] }
+                  : { scale: 1 }
+              }
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute inset-0"
+            >
+              <Cockpit />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

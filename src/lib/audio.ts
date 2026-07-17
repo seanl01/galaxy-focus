@@ -98,6 +98,40 @@ export function playJump(): void {
   source.stop(ac.currentTime + 2.1);
 }
 
+/**
+ * Hyperspace exit: a restrained low thump with a short rush of air —
+ * powerful but nothing like an explosion.
+ */
+export function playExitThump(): void {
+  const ac = getCtx();
+  if (!ac) return;
+  const t = ac.currentTime;
+
+  const osc = ac.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(110, t);
+  osc.frequency.exponentialRampToValueAtTime(42, t + 0.28);
+  const og = ac.createGain();
+  og.gain.setValueAtTime(0.16, t);
+  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+  osc.connect(og).connect(ac.destination);
+  osc.start(t);
+  osc.stop(t + 0.55);
+
+  const src = ac.createBufferSource();
+  src.buffer = brownNoiseBuffer(ac, 1);
+  const filter = ac.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(900, t);
+  filter.frequency.exponentialRampToValueAtTime(120, t + 0.6);
+  const ng = ac.createGain();
+  ng.gain.setValueAtTime(0.09, t);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+  src.connect(filter).connect(ng).connect(ac.destination);
+  src.start(t);
+  src.stop(t + 0.75);
+}
+
 export function playChime(): void {
   const ac = getCtx();
   if (!ac) return;
