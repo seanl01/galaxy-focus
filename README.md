@@ -61,17 +61,18 @@ preview the approach/arrival sequence.
 
 ## Ship model credits
 
-All ship models are Creative Commons Attribution (CC-BY) assets, bundled
-under `public/models/`:
+Bundled Creative Commons assets under `public/models/` (CC-BY except where
+noted):
 
 - x-wing by Alberto Calvo (CC-BY, [poly.pizza](https://poly.pizza))
 - [Tie Fighter](https://poly.pizza/m/fGumBDR4AFk) by David O'Brien (-BlanK-) (CC-BY)
 - [Low Poly Imperial Star Destroyer](https://sketchfab.com/3d-models/low-poly-imperial-star-destroyer-224ad417d1e246019fe35966a72e5125) by [Digital Sock](https://sketchfab.com/DigitalSock) (CC-BY 4.0)
 - [Speeder Bike](https://poly.pizza/m/1hTD6Jy384m) by Joe Scalise (CC-BY)
-- Razor Crest (Star Wars) — model via Sketchfab (confirm author/license before publishing)
+- [Razor Crest — Star Wars](https://sketchfab.com/3d-models/razor-crest-star-wars-172cb62cc1e141cfae4c48440c348de0) by [Quiznos323](https://sketchfab.com/Quiznos323) (**CC BY-NC-SA 4.0**)
 
-The Razor Crest GLB is de-rigged and its 4K textures downscaled to 1024 WebP
-(~2.3 MB) so it loads like the other low-poly vessels.
+The Razor Crest is licensed **CC BY-NC-SA 4.0** — non-commercial use only, and
+derivatives must share the same license. The GLB is de-rigged and its 4K
+textures downscaled to 1024 WebP (~2.3 MB) so it loads like the other vessels.
 
 Credits are also shown in-app under Settings → Model Credits.
 

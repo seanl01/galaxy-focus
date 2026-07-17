@@ -423,7 +423,8 @@ export const SHIPS: Ship[] = [
       lookZ: -17.25,
       scale: 1.65,
     },
-    credit: "Razor Crest (Star Wars) model via Sketchfab",
+    credit:
+      "Razor Crest — Star Wars by Quiznos323 (CC BY-NC-SA 4.0, sketchfab.com)",
   },
 ];
 
