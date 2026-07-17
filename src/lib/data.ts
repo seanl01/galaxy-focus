@@ -52,6 +52,11 @@ export interface Ship {
 export const KLY_PER_UNIT = 0.5;
 export const MIN_PER_KLY = 2.5;
 
+// Public assets live under the deployment base path (e.g. /galaxy-focus on
+// GitHub Pages). Manual fetches like GLTFLoader don't get Next's basePath
+// rewriting, so prefix them explicitly.
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export const PLANETS: Planet[] = [
   // Core Worlds -------------------------------------------------------------
   {
@@ -308,7 +313,7 @@ export const SHIPS: Ship[] = [
     name: "X-Wing",
     tagline: "Balanced and reliable.",
     accent: "#ff6a4d",
-    model: "/models/xwing.glb",
+    model: `${BASE}/models/xwing.glb`,
     noseYaw: 0,
     modelYaw: Math.PI * 0.75,
     modelZoom: 1,
@@ -319,7 +324,7 @@ export const SHIPS: Ship[] = [
     name: "TIE Fighter",
     tagline: "Fast and relentless.",
     accent: "#8fb8ff",
-    model: "/models/tie.glb",
+    model: `${BASE}/models/tie.glb`,
     noseYaw: Math.PI,
     modelYaw: Math.PI * 0.25,
     modelZoom: 1,
@@ -330,7 +335,7 @@ export const SHIPS: Ship[] = [
     name: "Star Destroyer",
     tagline: "Overwhelming presence.",
     accent: "#c9d4e4",
-    model: "/models/stardestroyer.glb",
+    model: `${BASE}/models/stardestroyer.glb`,
     noseYaw: Math.PI,
     modelYaw: Math.PI * 0.85,
     modelZoom: 1.05,
@@ -341,7 +346,7 @@ export const SHIPS: Ship[] = [
     name: "Speeder Bike",
     tagline: "Light, loud, low altitude.",
     accent: "#ffd98a",
-    model: "/models/speeder.glb",
+    model: `${BASE}/models/speeder.glb`,
     noseYaw: Math.PI / 2,
     modelYaw: Math.PI * 0.65,
     modelZoom: 1,

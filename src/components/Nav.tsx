@@ -22,7 +22,8 @@ export default function Nav() {
       </Link>
       <nav className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-2 py-1.5 backdrop-blur-xl">
         {LINKS.map((l) => {
-          const active = pathname === l.href;
+          const active =
+            pathname === l.href || pathname === `${l.href}/`;
           return (
             <Link
               key={l.href}
