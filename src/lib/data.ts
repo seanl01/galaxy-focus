@@ -361,11 +361,12 @@ export const SHIPS: Ship[] = [
     tagline: "Overwhelming presence.",
     accent: "#c9d4e4",
     model: `${BASE}/models/stardestroyer.glb`,
-    noseYaw: Math.PI,
-    modelYaw: Math.PI * 0.85,
+    noseYaw: Math.PI / 2,
+    modelYaw: Math.PI * 0.35,
     modelZoom: 1.05,
     chase: { ...DEFAULT_CHASE, camZ: 5.15 },
-    credit: "Star Destroyer by Joe Scalise (CC-BY, poly.pizza)",
+    credit:
+      "Low Poly Imperial Star Destroyer by Digital Sock (CC-BY 4.0, sketchfab.com)",
   },
   {
     id: "speeder",

@@ -60,14 +60,13 @@ preview the approach/arrival sequence.
 
 ## Ship model credits
 
-All ship models are Creative Commons Attribution (CC-BY) assets from
-[poly.pizza](https://poly.pizza), bundled under `public/models/`:
+All ship models are Creative Commons Attribution (CC-BY) assets, bundled
+under `public/models/`:
 
-- [X-Wing Fighter](https://poly.pizza/m/epzSsaO8Gfs) by Joe Scalise
-- [Tie Fighter](https://poly.pizza/m/fGumBDR4AFk) by David O'Brien (-BlanK-)
-- [Imperial Shuttle](https://poly.pizza/m/bPv3uoMsnUB) by Digi Factor Animation
-- [Star Destroyer](https://poly.pizza/m/dl2aVTlVph1) by Joe Scalise
-- [Speeder Bike](https://poly.pizza/m/1hTD6Jy384m) by Joe Scalise
+- x-wing by Alberto Calvo (CC-BY, [poly.pizza](https://poly.pizza))
+- [Tie Fighter](https://poly.pizza/m/fGumBDR4AFk) by David O'Brien (-BlanK-) (CC-BY)
+- [Low Poly Imperial Star Destroyer](https://sketchfab.com/3d-models/low-poly-imperial-star-destroyer-224ad417d1e246019fe35966a72e5125) by [Digital Sock](https://sketchfab.com/DigitalSock) (CC-BY 4.0)
+- [Speeder Bike](https://poly.pizza/m/1hTD6Jy384m) by Joe Scalise (CC-BY)
 
 Credits are also shown in-app under Settings → Model Credits.
 

@@ -187,7 +187,7 @@ export default function SettingsPage() {
             </ul>
             <p className="mt-3 text-xs text-slate-600">
               Ship models are Creative Commons Attribution assets from
-              poly.pizza, licensed by their respective authors.
+              poly.pizza and Sketchfab, licensed by their respective authors.
             </p>
           </div>
 
