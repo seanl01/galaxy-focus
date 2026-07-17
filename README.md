@@ -68,6 +68,10 @@ under `public/models/`:
 - [Tie Fighter](https://poly.pizza/m/fGumBDR4AFk) by David O'Brien (-BlanK-) (CC-BY)
 - [Low Poly Imperial Star Destroyer](https://sketchfab.com/3d-models/low-poly-imperial-star-destroyer-224ad417d1e246019fe35966a72e5125) by [Digital Sock](https://sketchfab.com/DigitalSock) (CC-BY 4.0)
 - [Speeder Bike](https://poly.pizza/m/1hTD6Jy384m) by Joe Scalise (CC-BY)
+- Razor Crest (Star Wars) — model via Sketchfab (confirm author/license before publishing)
+
+The Razor Crest GLB is de-rigged and its 4K textures downscaled to 1024 WebP
+(~2.3 MB) so it loads like the other low-poly vessels.
 
 Credits are also shown in-app under Settings → Model Credits.
 

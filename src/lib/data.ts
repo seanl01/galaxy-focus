@@ -401,6 +401,19 @@ export const SHIPS: Ship[] = [
     chase: DEFAULT_CHASE,
     credit: "Speeder Bike by Joe Scalise (CC-BY, poly.pizza)",
   },
+  {
+    id: "razorcrest",
+    name: "Razor Crest",
+    tagline: "Pre-Empire gunship, well-worn.",
+    accent: "#9fb2c4",
+    model: `${BASE}/models/razorcrest.glb`,
+    // GLB is pre-rotated flat (long axis Z); Y rotations frame it like the rest.
+    noseYaw: 0,
+    modelYaw: Math.PI * 0.25,
+    modelZoom: 1,
+    chase: DEFAULT_CHASE,
+    credit: "Razor Crest (Star Wars) model via Sketchfab",
+  },
 ];
 
 export const SHIP_MAP: Record<string, Ship> = Object.fromEntries(
